@@ -622,6 +622,7 @@ select.select-input:focus { border-color: var(--line-strong); }
   color: var(--accent);
 }
 </style>
+<link rel="stylesheet" href="renderer-types.css">
 </head>
 <body>
 
@@ -653,10 +654,8 @@ select.select-input:focus { border-color: var(--line-strong); }
   <!-- Right Panel -->
   <div class="panel">
     <div class="panel-title" data-i18n="import">Import</div>
-    <div class="btn-group mode-switch">
-      <a class="btn active" href="pro-0.html">ASCII</a>
-      <a class="btn" href="pro-1.html">Halftone</a>
-    </div>
+    <nav class="renderer-types" aria-label="效果类型">
+<a href="pro-0.html" data-type="ascii" aria-current="page">ASCII</a><a href="pro-1.html" data-type="halftone">Halftone</a><a href="pro-gradient.html" data-type="gradient">双曲线渐变</a><a href="pro-mesh.html" data-type="mesh">网格渐变</a><a href="pro-poster.html" data-type="poster">光栅海报</a></nav>
     <div class="btn-group">
       <button class="btn" id="btnImage" data-i18n="image">Image</button>
       <button class="btn" id="btnVideo" data-i18n="video">Video</button>

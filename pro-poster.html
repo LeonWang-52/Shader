@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN"><head><base href="gradient-lab/"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>光栅海报 · Shader</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="study.css?v=floating-20260918"><link rel="stylesheet" href="../renderer-types.css"><link rel="stylesheet" href="integration.css"></head>
+<body data-initial-engine="2"><main id="stage"><div class="stage-toolbar"><button id="editX" aria-pressed="true">X 曲线</button><button id="editY" aria-pressed="false">Y 曲线</button><label><input id="showCurves" type="checkbox" checked>显示曲线</label></div><canvas id="canvas" aria-label="暖橙、蜜黄与桃粉交融的动态颗粒渐变"></canvas>
+<canvas id="meshOverlay" aria-label="贝塞尔网格编辑器：拖动节点和手柄调整渐变"></canvas></main>
+<details id="controls" open><summary title="拖动移动面板，点击收起或展开">参数调节</summary><div class="panel"><div class="panel-title">效果类型</div><nav class="renderer-types" aria-label="效果类型">
+<a href="../pro-0.html" data-type="ascii">ASCII</a><a href="../pro-1.html" data-type="halftone">Halftone</a><a href="../pro-gradient.html" data-type="gradient">双曲线渐变</a><a href="../pro-mesh.html" data-type="mesh">网格渐变</a><a href="../pro-poster.html" data-type="poster" aria-current="page">光栅海报</a></nav>
+<fieldset><legend>CANVAS</legend><div class="size-row"><label>Width<input id="canvasWidth" type="number" min="64" max="4096" value="1242"></label><label>Height<input id="canvasHeight" type="number" min="64" max="4096" value="856"></label></div></fieldset><label for="renderEngine" hidden>渐变生成</label><select id="renderEngine" hidden><option value="1">双曲线色带</option><option value="0">原参考图网格</option><option value="2" selected>光栅海报</option></select>
+
+<fieldset id="posterSettings" hidden><legend>光栅海报</legend>
+<label for="posterPreset">参考风格</label><select id="posterPreset"><option value="0">暖色阶梯</option><option value="1">奶油光波</option><option value="2">紫绿色域</option><option value="3">红白流体</option><option value="4">薄荷像素</option></select>
+<button id="applyPoster" type="button">应用配色与竖版尺寸</button>
+<label>光栅数量<input id="ribCount" type="range" min="20" max="240" value="100"></label>
+<label>光栅深度<input id="ribDepth" type="range" min="0" max="100" value="75"></label>
+<label>阶梯网格<input id="posterGrid" type="range" min="4" max="80" value="18"></label>
+<label>色阶数量<input id="posterLevels" type="range" min="2" max="16" value="6"></label>
+<label>印刷颗粒<input id="printGrain" type="range" min="0" max="100" value="25"></label>
+<p>下方色带可修改配色。光栅和印刷纹理会一起导出；不包含参考图上的文字。</p>
+</fieldset>
+<label>颜色边缘羽化 <input class="number-inline" id="featherValue" type="number" min="1" max="40" value="40"><input id="feather" type="range" min="1" max="40" step="1" value="40"></label>
+<p class="feather-help">双曲线模式调整曲线边缘融合；网格模式柔化色块边缘。</p>
+<fieldset class="blend-controls"><legend>Global blend</legend>
+<label for="blendMode">混合模式</label><select id="blendMode"><option value="0">关闭 / Off</option><option value="1">Average</option><option value="2">Multiply</option><option value="3">Screen</option><option value="4">Overlay</option><option value="5">Soft Light</option><option value="6">Hard Light</option><option value="7" selected>Difference</option><option value="8">Exclusion</option><option value="9">Darken</option><option value="10">Lighten</option><option value="11">Color Burn</option><option value="12">Color Dodge</option></select>
+<p id="blendHint">混合 X 与 Y 曲线的数值，再映射到色带。</p><label class="toggle" for="blendColor" id="blendColorRow">混合颜色 <input id="blendColor" type="color" value="#f2a90e"></label>
+<label>混合强度 <output id="blendAmountValue">100%</output><input id="blendAmount" type="range" min="0" max="100" step="1" value="100"></label>
+</fieldset>
+<div class="grain-control"><div class="grain-heading"><label for="grain">边缘颗粒</label><input id="grainValue" type="number" aria-label="边缘颗粒数值" min="0" max="30" step="1" value="13" inputmode="decimal"></div><input id="grain" aria-label="边缘颗粒滑杆" type="range" min="0" max="30" step="1" value="13"><p>Noise 0–30：扰动颜色过渡，值越大边缘的颗粒混色越明显。</p></div>
+<fieldset class="blend-controls" id="curveFieldSettings"><legend>双曲线色带</legend>
+<label for="palettePreset">配色</label><select id="palettePreset"><option value="warm">参考暖色</option><option value="vibrant">Vibrant</option><option value="random">Random</option><option value="cool">Cool</option><option value="dark">Dark</option><option value="light">Light</option><option value="complementary">Complementary</option><option value="analogous">Analogous</option><option value="triadic">Triadic</option><option value="monochromatic">Monochromatic</option></select>
+<label class="toggle" for="paletteCount">色带颜色数量<input id="paletteCount" type="number" min="2" max="20" value="9"></label><div id="stopTrack" aria-label="渐变色标"></div><div id="paletteColors" class="palette-colors"></div>
+<div class="size-row"><label>Hex<input id="stopHex" value="#e7470c" maxlength="7"></label><label>Position %<input id="stopPosition" type="number" min="0" max="100" step="0.1" value="0"></label></div>
+<div class="actions wrap"><button id="invertPalette">反转</button><button id="distributePalette">均匀分布</button><button id="shufflePalette">打乱</button><button id="deleteStop">删除色标</button><button id="randomPalette">随机配色</button></div>
+<label>X 曲线<canvas id="curveX" class="curve-editor" aria-label="X 曲线编辑器"></canvas></label>
+<label>Y 曲线<canvas id="curveY" class="curve-editor" aria-label="Y 曲线编辑器"></canvas></label>
+<label class="toggle">平滑曲线<input id="curveSmooth" type="checkbox" checked></label>
+<div class="actions"><button id="randomCurves">随机曲线</button><button id="resetCurves">恢复曲线</button><button id="invertCurves">反转曲线</button></div>
+<p>拖动曲线上的点；点击空白处加点，右键删除中间点。</p></fieldset>
+<label class="toggle">编辑贝塞尔网格<input id="editMesh" type="checkbox"></label>
+<p class="mesh-help">拖动节点与手柄调整颜色，背景点阵保持固定。</p>
+<p id="meshSize" role="status">4 行 × 4 列 · 16 节点</p>
+<div class="actions mesh-actions"><button id="addMeshRow">增加一行</button><button id="addMeshColumn">增加一列</button><button id="resetMesh">重置网格</button></div>
+<p class="mesh-help">在选中节点下方或右侧插入，最多 8 行 × 8 列。</p>
+<fieldset class="blend-controls"><legend>底色</legend>
+<label class="toggle" for="baseColor">底色颜色<input type="color" id="baseColor" value="#f2a90e" aria-label="底色颜色"></label>
+<p id="baseColorStatus" role="status">当前使用参考渐变底色</p>
+<button id="restoreBase" type="button">恢复参考底色</button>
+</fieldset>
+<fieldset class="blend-controls"><legend>网格颜色 <span id="colorCount">0 / 16</span></legend>
+<button id="addColor">添加颜色</button><p>也可双击网格添加，拖动编号色点调整位置。</p>
+<div id="colorList" class="color-list" aria-label="新增颜色列表"></div>
+<div id="colorSettings" hidden><label class="toggle" for="nodeColor"><span id="selectedColor">颜色</span><input type="color" id="nodeColor" aria-label="节点颜色" value="#f2e8a0"></label>
+<label>扩散范围 <output id="colorRadiusValue">24%</output><input type="range" id="colorRadius" min="5" max="80" step="1" value="24" aria-label="颜色扩散范围"></label>
+<button id="removeColor">删除选中颜色</button></div></fieldset>
+<label>流动速度 <output id="speedValue">0.6</output><input id="speed" type="range" min="0" max="2" step="0.05" value="0.6"></label>
+<fieldset class="blend-controls"><legend>点阵 / Patterns</legend>
+<label class="toggle">显示点阵<input id="dots" type="checkbox" checked></label>
+<label class="toggle" for="dotCount">数量<input id="dotCount" type="number" min="0" max="2000" step="1" value="408"></label><input id="dotCountRange" type="range" min="0" max="2000" step="1" value="408" aria-label="点阵数量滑杆">
+<label class="toggle" for="dotColor">颜色<input id="dotColor" type="color" value="#ffedc2"></label>
+<label for="dotShape">形状</label><select id="dotShape"><option value="0">圆点</option><option value="1">方块</option><option value="2">菱形</option><option value="3">十字</option><option value="4">圆环</option><option value="5">四角星</option></select>
+<label class="toggle" for="dotSize">大小（像素）<input id="dotSize" type="number" min="1" max="30" step="0.5" value="5"></label>
+<label class="toggle" for="dotOpacity">不透明度 %<input id="dotOpacity" type="number" min="0" max="100" step="1" value="64"></label>
+<p>数量为整幅画布的点数；点阵位置保持固定。</p></fieldset>
+<fieldset class="blend-controls"><legend>导出位置</legend><button id="saveExportFolder" type="button">选择文件夹…</button><p id="exportFolder" class="export-path" aria-label="当前导出文件夹"></p><p id="exportFolderStatus" role="status">正在读取导出位置…</p></fieldset>
+<div class="actions"><button id="pause">暂停</button><button id="reset">回到参考帧</button><select id="exportFormat" aria-label="导出格式"><option>PNG</option><option>WebP</option><option>MP4</option><option>WebM</option></select><button id="save">导出作品</button></div>
+<div id="videoSettings" hidden><div class="size-row"><label>时长（秒）<input id="videoSeconds" type="number" min="1" max="60" value="5"></label><label>帧率<select id="videoFps"><option>30</option><option>60</option></select></label></div><p>导出时自动播放动画，请保持页面在前台。</p></div><button id="cancelExport" hidden>取消导出</button><p id="exportStatus" role="status"></p><div id="exportResult"></div>
+<div class="actions"><button id="saveState">保存参数 JSON</button><button id="loadState">载入参数</button><input id="stateFile" type="file" accept="application/json,.json" hidden></div><p id="stateStatus" role="status"></p><p>H 隐藏面板 · 空格暂停 · <a href="./LEARNING.md" target="_blank">算法说明</a></p></div></details><div id="error" role="alert" hidden></div>
+<script type="module" src="main.js?v=nav-fix-20261014"></script></body></html>
